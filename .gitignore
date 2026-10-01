@@ -1,0 +1,12 @@
+# Signing keys must never be committed
+*.pk8
+*.pem
+*.x509.pem
+.android-certs/
+
+# Proprietary files and build outputs
+extras/
+*.apk
+*.img
+*.zip
+*_model

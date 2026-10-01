@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  LineageOS 23.2 for Xiaomi 11 Lite 5G NE (lisa) with Xiaomi MiuiCamera.
+  Copy to .repo/local_manifests/ (build.sh init does it).
+
+  All device dependencies are listed here explicitly, so breakfast/roomservice
+  does not fetch the upstream device trees on top of the forks.
+-->
+<manifest>
+  <remote name="lisa-gh" fetch="https://github.com/" />
+
+  <!-- Device trees: forks with the MiuiCamera integration -->
+  <project name="ultrapazniy/android_device_xiaomi_lisa"
+           path="device/xiaomi/lisa" remote="lisa-gh" revision="lineage-23.2-miuicamera" />
+  <project name="ultrapazniy/android_device_xiaomi_sm8350-common"
+           path="device/xiaomi/sm8350-common" remote="lisa-gh" revision="lineage-23.2-miuicamera" />
+
+  <!-- Unmodified upstream dependencies (from lineage.dependencies) -->
+  <project name="LineageOS/android_kernel_xiaomi_sm8350"
+           path="kernel/xiaomi/sm8350" remote="lisa-gh" revision="lineage-23.2" />
+  <project name="LineageOS/android_hardware_xiaomi"
+           path="hardware/xiaomi" remote="lisa-gh" revision="lineage-23.2" />
+
+  <!-- Proprietary vendor blobs -->
+  <project name="TheMuppets/proprietary_vendor_xiaomi_lisa"
+           path="vendor/xiaomi/lisa" remote="lisa-gh" revision="lineage-23.2" />
+  <project name="TheMuppets/proprietary_vendor_xiaomi_sm8350-common"
+           path="vendor/xiaomi/sm8350-common" remote="lisa-gh" revision="lineage-23.2" />
+
+  <!-- Xiaomi stock camera package (APK + libs + sepolicy) -->
+  <project name="xiaomi-lisa-resources/proprietary_vendor_xiaomi_miuicamera-lisa"
+           path="vendor/xiaomi/miuicamera-lisa" remote="lisa-gh" revision="lineage-23.1" />
+</manifest>
