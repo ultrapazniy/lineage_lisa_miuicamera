@@ -28,6 +28,8 @@
            path="vendor/xiaomi/sm8350-common" remote="lisa-gh" revision="lineage-23.2" />
 
   <!-- Xiaomi stock camera package (APK + libs + sepolicy) -->
-  <project name="xiaomi-lisa-resources/proprietary_vendor_xiaomi_miuicamera-lisa"
-           path="vendor/xiaomi/miuicamera-lisa" remote="lisa-gh" revision="lineage-23.1" />
+  <!-- Fork of xiaomi-lisa-resources/proprietary_vendor_xiaomi_miuicamera-lisa
+       (lineage-23.1) that overrides Aperture -->
+  <project name="ultrapazniy/proprietary_vendor_xiaomi_miuicamera-lisa"
+           path="vendor/xiaomi/miuicamera-lisa" remote="lisa-gh" revision="lineage-23.2-miuicamera" />
 </manifest>

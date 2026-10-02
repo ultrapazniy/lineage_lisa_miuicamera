@@ -18,6 +18,7 @@ FORK_BRANCH=lineage-23.2-miuicamera
 FORKS=(
     "device/xiaomi/lisa ultrapazniy/android_device_xiaomi_lisa"
     "device/xiaomi/sm8350-common ultrapazniy/android_device_xiaomi_sm8350-common"
+    "vendor/xiaomi/miuicamera-lisa ultrapazniy/proprietary_vendor_xiaomi_miuicamera-lisa"
 )
 CAM_REPO=vendor/xiaomi/miuicamera-lisa
 CAM_APK=$CAM_REPO/vendor/proprietary/system/priv-app/MiuiCamera/MiuiCamera.apk
@@ -54,12 +55,15 @@ step_migrate() {
     for f in "${FORKS[@]}"; do
         set -- $f; path=$1; name=$2
         [ -d "$path/.git" ] || continue
+        url="https://github.com/$name"
+        case "$(git -C "$path" remote get-url "$(git -C "$path" remote | head -1)")" in
+            "$url"|"$url.git") continue ;;  # already the fork
+        esac
         [ -z "$(git -C "$path" status --porcelain)" ] || die "$path has uncommitted changes"
-        head=$(git -C "$path" rev-parse HEAD)
-        remote=$(git ls-remote "https://github.com/$name" "refs/heads/$FORK_BRANCH" | cut -f1)
-        [ -n "$remote" ] || die "$name has no branch $FORK_BRANCH on GitHub yet, push it first"
-        [ "$head" = "$remote" ] \
-            || die "$path HEAD ($head) differs from github.com/$name $FORK_BRANCH ($remote), push it first"
+        # Local commits must already be part of the fork branch
+        git -C "$path" fetch -q "$url" "$FORK_BRANCH" || die "cannot fetch $FORK_BRANCH from $url"
+        git -C "$path" merge-base --is-ancestor HEAD FETCH_HEAD \
+            || die "$path has commits that are not on $url $FORK_BRANCH, push them first"
         log "Removing upstream checkout of $path (its commits are on GitHub)"
         rm -rf "$path" ".repo/projects/$path.git"
     done

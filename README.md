@@ -9,20 +9,21 @@ SELinux domain. This is something a Magisk module cannot provide.
 
 ## How it works
 
-Only two LineageOS repositories are modified. They are forked, and a local manifest swaps them in
+Two LineageOS device trees and the camera package are modified. They are forked, and a local manifest swaps them in
 during `repo sync`:
 
 | Repository | Branch | Change |
 |---|---|---|
 | [ultrapazniy/android_device_xiaomi_lisa](https://github.com/ultrapazniy/android_device_xiaomi_lisa) | `lineage-23.2-miuicamera` | Inherit `vendor/xiaomi/miuicamera-lisa` |
 | [ultrapazniy/android_device_xiaomi_sm8350-common](https://github.com/ultrapazniy/android_device_xiaomi_sm8350-common) | `lineage-23.2-miuicamera` | Drop the stub `camera_cnf.txt`; the camera package installs the real SenseTime license there |
+| [ultrapazniy/proprietary_vendor_xiaomi_miuicamera-lisa](https://github.com/ultrapazniy/proprietary_vendor_xiaomi_miuicamera-lisa) | `lineage-23.2-miuicamera` | MiuiCamera `overrides` Aperture, so the LineageOS camera is not shipped (the Quick Settings QR scanner tile goes with it) |
 
 Everything else comes from upstream:
 
 - **LineageOS** — kernel, `hardware/xiaomi` and the rest of the tree.
 - **[TheMuppets](https://github.com/TheMuppets)** — proprietary vendor blobs.
-- **[xiaomi-lisa-resources/proprietary_vendor_xiaomi_miuicamera-lisa](https://github.com/xiaomi-lisa-resources/proprietary_vendor_xiaomi_miuicamera-lisa)** —
-  the camera package: APK, JNI libraries, `libgui` shim, sepolicy and props.
+- **[xiaomi-lisa-resources/proprietary_vendor_xiaomi_miuicamera-lisa](https://github.com/xiaomi-lisa-resources/proprietary_vendor_xiaomi_miuicamera-lisa)**
+  (via the fork above) — the camera package: APK, JNI libraries, `libgui` shim, sepolicy and props.
 
 | File | Purpose |
 |---|---|
