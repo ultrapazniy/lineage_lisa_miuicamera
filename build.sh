@@ -100,6 +100,29 @@ prepare_extras() {
     fi
 }
 
+apply_patches() {
+    cd "$SRC"
+    # Local source patches, applied as commits on top of the synced tree.
+    # They are re-applied (amended) on every 'build' after a fresh sync.
+    for pdir in "$HERE"/patches/*; do
+        [ -d "$pdir" ] || continue
+        proj=${pdir##*/}
+        case "$proj" in
+            frameworks_base) tree=frameworks/base ;;
+            *) die "no mapping for patch dir $proj" ;;
+        esac
+        [ -d "$tree" ] || die "$tree missing, run 'init sync' first"
+        for p in "$pdir"/*.patch; do
+            [ -e "$p" ] || continue
+            subject=$(sed -n 's/^Subject: \[PATCH\] //p' "$p" | head -1)
+            if git -C "$tree" log --oneline -1 --grep="^$subject$" | grep -q .; then
+                continue  # already applied
+            fi
+            git -C "$tree" am --3way "$p" || die "failed to apply $p in $tree (fix conflicts, 'git am --continue', rerun)"
+        done
+    done
+}
+
 step_build() {
     cd "$SRC"
     [ -d "$DT" ] || die "$DT missing, run 'init sync' first"
@@ -107,6 +130,7 @@ step_build() {
         || die "$DT is not the MiuiCamera fork, run './build.sh migrate sync'"
     ensure_lfs
     prepare_extras
+    apply_patches
     envsetup
     log "Building target-files (this takes many hours the first time)"
     cd "$SRC"

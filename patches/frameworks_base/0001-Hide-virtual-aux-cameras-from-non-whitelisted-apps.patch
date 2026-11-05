@@ -1,0 +1,65 @@
+From: lisa build kit <dev@local>
+Subject: [PATCH] camera2: hide virtual aux camera IDs from non-whitelisted apps
+
+Ports the Xiaomi/Qualcomm behaviour found in HyperOS OS2.0.8.0.UKOMIXM
+(lisa): virtual cameras (IDs 5 and 6 on lisa) are only exposed to
+packages listed in vendor.camera.aux.packagelist (e.g. the MiuiCamera
+package com.android.camera). Other apps get a filtered camera ID list
+and no longer crash with "do not support any formats" when opening them.
+
+The stock Qualcomm behaviour truncated the list to the first two map
+entries (i == 2), which would also hide the real front camera; this
+patch instead skips only the IDs from vendor.camera.aux.hiddenids
+(default "5,6"), so all real cameras stay visible to every app.
+
+Requires the device tree to set in vendor.prop:
+    vendor.camera.aux.packagelist=com.android.camera
+Without that property the behaviour is unchanged (all IDs exposed).
+
+---
+--- a/core/java/android/hardware/camera2/CameraManager.java	2026-11-05 10:32:05.855520800 -0800
++++ b/core/java/android/hardware/camera2/CameraManager.java	2026-11-05 10:32:05.949520900 -0800
+@@ -2487,8 +2487,8 @@
+             try {
+                 List<String> cameraIds = new ArrayList<>();
+                 boolean exposeAuxCamera = Camera.shouldExposeAuxCamera();
++                Set<String> hiddenAuxCameraIds = getHiddenAuxCameraIds(exposeAuxCamera);
+                 for (int i = 0; i < mDeviceStatus.size(); i++) {
+-                    if (!exposeAuxCamera && i == 2) break;
+                     int status = mDeviceStatus.valueAt(i);
+                     DeviceCameraInfo info = mDeviceStatus.keyAt(i);
+                     if (status == ICameraServiceListener.STATUS_NOT_PRESENT
+@@ -2496,6 +2496,9 @@
+                             || shouldHideCamera(deviceId, devicePolicy, info)) {
+                         continue;
+                     }
++                    if (hiddenAuxCameraIds.contains(info.mCameraId)) {
++                        continue;
++                    }
+                     cameraIds.add(info.mCameraId);
+                 }
+                 return cameraIds.toArray(new String[0]);
+@@ -2507,6 +2510,23 @@
+             }
+         }
+ 
++        /**
++         * Virtual/auxiliary camera IDs hidden from apps that are not whitelisted
++         * via vendor.camera.aux.packagelist (Xiaomi-style aux camera filtering).
++         * Configured through vendor.camera.aux.hiddenids, default "5,6" for lisa.
++         */
++        private static Set<String> getHiddenAuxCameraIds(boolean exposeAuxCamera) {
++            Set<String> hidden = new ArraySet<>();
++            if (exposeAuxCamera) {
++                return hidden;
++            }
++            String ids = SystemProperties.get("vendor.camera.aux.hiddenids", "5,6");
++            for (String id : ids.split(",")) {
++                hidden.add(id.trim());
++            }
++            return hidden;
++        }
++
+         private Set<Set<String>> extractConcurrentCameraIdListLocked(int deviceId,
+                 int devicePolicy) {
+             Set<Set<String>> concurrentCameraIds = new ArraySet<>();
